@@ -34,7 +34,7 @@ const register = async (payload: RegisterInput): Promise<PublicUser> => {
   
     return toPublicUser(user);
   } catch (error) {
-    return handleDuplicateEntryError(error, 'Username or email already exists');
+    return handleDuplicateEntryError(error);
   }
 };
 

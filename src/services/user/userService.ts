@@ -17,7 +17,7 @@ const createUser = async (payload: CreateUserInput): Promise<PublicUser> => {
     const user = await userRepository.create(payload);
     return toPublicUser(user);
   } catch (error) {
-    return handleDuplicateEntryError(error, 'Username or email already exists');
+    return handleDuplicateEntryError(error);
   }
 };
 
