@@ -1,4 +1,5 @@
 import { AppError } from '../../errors/AppError.ts';
+import { handleDuplicateEntryError } from '../../errors/errorUtils.ts';
 import userRepository from '../../repositories/user/userRepository.ts';
 import type { PublicUser } from '../../types/user.ts';
 import { toPublicUser } from '../mappers/userMapper.ts';
@@ -12,8 +13,12 @@ type CreateUserInput = {
 type UpdateUserInput = Partial<CreateUserInput>;
 
 const createUser = async (payload: CreateUserInput): Promise<PublicUser> => {
-  const user = await userRepository.create(payload);
-  return toPublicUser(user);
+  try {
+    const user = await userRepository.create(payload);
+    return toPublicUser(user);
+  } catch (error) {
+    return handleDuplicateEntryError(error, 'Username or email already exists');
+  }
 };
 
 const getAllUsers = async (): Promise<PublicUser[]> => {

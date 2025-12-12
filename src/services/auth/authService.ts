@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import type { Secret, SignOptions } from 'jsonwebtoken';
+import {  handleDuplicateEntryError } from '../../errors/errorUtils.ts';
 
 import env from '../../config/env.ts';
 import { AppError } from '../../errors/AppError.ts';
@@ -21,16 +22,20 @@ type LoginInput = {
 };
 
 const register = async (payload: RegisterInput): Promise<PublicUser> => {
-  const hashedPassword = await bcrypt.hash(payload.password, 10);
-
-  const user = await userRepository.create({
-    username: payload.username,
-    displayName: payload.displayName,
-    email: payload.email,
-    password: hashedPassword,
-  });
-
-  return toPublicUser(user);
+  try {
+    const hashedPassword = await bcrypt.hash(payload.password, 10);
+  
+    const user = await userRepository.create({
+      username: payload.username,
+      displayName: payload.displayName,
+      email: payload.email,
+      password: hashedPassword,
+    });
+  
+    return toPublicUser(user);
+  } catch (error) {
+    return handleDuplicateEntryError(error, 'Username or email already exists');
+  }
 };
 
 const login = async (
