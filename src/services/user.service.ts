@@ -1,8 +1,8 @@
-import { AppError } from '../../errors/AppError.ts';
-import { handleDuplicateEntryError } from '../../errors/errorUtils.ts';
-import userRepository from '../../repositories/user/userRepository.ts';
-import type { PublicUser } from '../../types/user.ts';
-import { toPublicUser } from '../mappers/userMapper.ts';
+import { AppError } from '../errors/app-error.ts';
+import { handleDuplicateEntryError } from '../errors/error-utils.ts';
+import userRepository from '../repositories/user.repository.ts';
+import type { PublicUser } from '../types/user.ts';
+import { toPublicUser } from './user.mapper.ts';
 
 type CreateUserInput = {
   username: string;

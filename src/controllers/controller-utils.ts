@@ -1,8 +1,8 @@
 import type { Response } from 'express';
 
-import { AppError } from '../../errors/AppError.ts';
+import { AppError } from '../errors/app-error.ts';
 
-export const handleControllerError = (error: unknown, res: Response) => {
+export const handleControllerError = (error: any, res: Response) => {
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({
       status: 'error',

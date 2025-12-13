@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import env from '../config/env.ts';
 import type { PublicUser } from '../types/user.ts';
 
-const accessValidation = (req: Request, res: Response, next: NextFunction) => {
+const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader) {
@@ -53,4 +53,4 @@ const accessValidation = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export default accessValidation;
+export default authMiddleware;

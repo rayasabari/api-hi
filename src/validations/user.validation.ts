@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requiredString } from '../utils/zodHelper.ts';
+import { requiredString } from '../utils/zod-helper.ts';
 
 const baseUserBody = z.object({
   username: requiredString("Username required")
@@ -8,7 +8,7 @@ const baseUserBody = z.object({
         .min(3, "Username must be at least 3 characters long")
         .max(30, "Username must be at most 30 characters long")
     )
-    .transform((v) => v.toLowerCase()),
+    .transform((v: string) => v.toLowerCase()),
 
   displayName: requiredString("Display Name required")
     .pipe(
@@ -19,7 +19,7 @@ const baseUserBody = z.object({
 
   email: requiredString("Email required")
     .pipe(z.email("Invalid email address"))
-    .transform((v) => v.toLowerCase()),
+    .transform((v: string) => v.toLowerCase()),
 });
 
 export const createUserSchema = z.object({

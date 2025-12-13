@@ -1,13 +1,13 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import type { Secret, SignOptions } from 'jsonwebtoken';
-import {  handleDuplicateEntryError } from '../../errors/errorUtils.ts';
+import {  handleDuplicateEntryError } from '../errors/error-utils.ts';
 
-import env from '../../config/env.ts';
-import { AppError } from '../../errors/AppError.ts';
-import userRepository from '../../repositories/user/userRepository.ts';
-import type { PublicUser } from '../../types/user.ts';
-import { toPublicUser } from '../mappers/userMapper.ts';
+import env from '../config/env.ts';
+import { AppError } from '../errors/app-error.ts';
+import userRepository from '../repositories/user.repository.ts';
+import type { PublicUser } from '../types/user.ts';
+import { toPublicUser } from './user.mapper.ts';
 
 type RegisterInput = {
   username: string;

@@ -1,6 +1,6 @@
 import { Prisma } from '../../generated/prisma/client.ts';
-import { AppError } from './AppError.ts';
-import { camelCaseToTitleCase } from '../utils/stringUtils.ts';
+import { AppError } from './app-error.ts';
+import { camelCaseToTitleCase } from '../utils/string-utils.ts';
 
 /**
  * Handles Prisma's P2002 error (unique constraint violation) by throwing a 409 Conflict AppError
