@@ -10,6 +10,20 @@ const findByEmail = (email: string): Promise<User | null> =>
 const findById = (id: number): Promise<User | null> =>
   prisma.user.findUnique({ where: { id } });
 
+const findByIdWithPassword = (id: number): Promise<User | null> =>
+  prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      email: true,
+      password: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
 const findAll = (): Promise<User[]> => prisma.user.findMany();
 
 const update = (id: number, data: Prisma.UserUpdateInput): Promise<User> =>
@@ -25,6 +39,7 @@ const userRepository = {
   create,
   findByEmail,
   findById,
+  findByIdWithPassword,
   findAll,
   update,
   deleteById,

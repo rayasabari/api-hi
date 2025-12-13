@@ -113,12 +113,38 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+const updatePassword = async (req: Request, res: Response) => {
+  try {
+    // Get user ID from authenticated user (set by auth middleware)
+    const userId = req.userData?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User not authenticated',
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    await userService.updatePassword(userId, currentPassword, newPassword);
+
+    return res.json({
+      status: 'success',
+      message: 'Password updated successfully',
+    });
+  } catch (error) {
+    return handleControllerError(error, res);
+  }
+};
+
 const userController = {
   createUser,
   getUsers,
   getUser,
   updateUser,
   deleteUser,
+  updatePassword,
 };
 
 export default userController;

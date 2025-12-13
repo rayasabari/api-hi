@@ -35,3 +35,22 @@ export const registerUserSchema = z.object({
 export const updateUserSchema = z.object({
   body: baseUserBody.partial(),
 });
+
+export const updatePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: requiredString('Current password is required'),
+
+    newPassword: requiredString('New password is required')
+      .pipe(
+        z.string()
+          .min(6, 'New password must be at least 6 characters long')
+          .max(100, 'New password must be at most 100 characters long')
+      ),
+
+    confirmPassword: requiredString('Confirm password is required')
+      .pipe(z.string().min(1, 'Confirm password cannot be empty')),
+  }).refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  }),
+});
