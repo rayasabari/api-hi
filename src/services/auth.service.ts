@@ -1,13 +1,13 @@
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import type { Secret, SignOptions } from 'jsonwebtoken';
-import {  handleDuplicateEntryError } from '../errors/error-utils.ts';
+import { handleDuplicateEntryError } from '../errors/error-utils.ts';
 
 import env from '../config/env.ts';
 import { AppError } from '../errors/app-error.ts';
 import userRepository from '../repositories/user.repository.ts';
 import type { PublicUser } from '../types/user.ts';
 import { toPublicUser } from './user.mapper.ts';
+import { hashPassword, comparePassword } from '../utils/password-utils.ts';
 
 type RegisterInput = {
   username: string;
@@ -23,15 +23,15 @@ type LoginInput = {
 
 const register = async (payload: RegisterInput): Promise<PublicUser> => {
   try {
-    const hashedPassword = await bcrypt.hash(payload.password, 10);
-  
+    const hashedPassword = await hashPassword(payload.password);
+
     const user = await userRepository.create({
       username: payload.username,
       displayName: payload.displayName,
       email: payload.email,
       password: hashedPassword,
     });
-  
+
     return toPublicUser(user);
   } catch (error) {
     return handleDuplicateEntryError(error);
@@ -51,7 +51,7 @@ const login = async (
     throw new AppError('Password not set!', 401);
   }
 
-  const passwordValid = await bcrypt.compare(payload.password, user.password);
+  const passwordValid = await comparePassword(payload.password, user.password);
 
   if (!passwordValid) {
     throw new AppError('Invalid credentials!', 401);
