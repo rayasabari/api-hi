@@ -31,3 +31,7 @@ export const registerUserSchema = z.object({
     password: z.string().min(6).max(100),
   }),
 });
+
+export const updateUserSchema = z.object({
+  body: baseUserBody.partial(),
+});
