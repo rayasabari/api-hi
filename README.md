@@ -7,8 +7,9 @@ TypeScript/Express REST API that handles user management and authentication with
 - **Runtime**: Node.js 22+, pnpm
 - **Framework**: Express 5 with middleware-based architecture
 - **Database/ORM**: PostgreSQL + Prisma
-- **Auth**: bcrypt for hashing, jsonwebtoken for access tokens
-- **Language/Tooling**: TypeScript (strict), ts-node for dev, nodemon for live reload
+- **Auth**: bcrypt for password hashing, jsonwebtoken for JWT-based authentication
+- **Validation**: Zod for request validation with custom schemas
+- **Language/Tooling**: TypeScript (strict mode), tsx for development with hot reload
 
 ## Project Structure
 
@@ -16,13 +17,15 @@ TypeScript/Express REST API that handles user management and authentication with
 src/
 ├── app.ts                # Express app bootstrap
 ├── server.ts             # Starts HTTP server
-├── config/               # env loader & Prisma client wrapper
+├── config/               # Environment loader & Prisma client wrapper
 ├── controllers/          # HTTP handlers grouped by module + shared helpers
 ├── services/             # Business logic (auth/user) & mappers
 ├── repositories/         # Prisma data access per module
-├── middleware/           # Cross-cutting middleware (JWT guard, etc.)
+├── middleware/           # Cross-cutting middleware (auth, validation)
 ├── routes/               # Express routers mounted under /auth and /users
-├── errors/               # Custom AppError type
+├── validations/          # Zod schemas for request validation
+├── errors/               # Custom AppError type & error utilities
+├── utils/                # Shared utilities (password, string, Zod helpers)
 └── types/                # Shared TS types & Express module augmentation
 ```
 
@@ -38,7 +41,7 @@ pnpm install
 
 Create `.env` (never commit it) with the required settings:
 
-```
+```env
 PORT=5050
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
 JWT_SECRET=super-secret
@@ -57,53 +60,108 @@ JWT_EXPIRATION=1h
 pnpm dev
 ```
 
-Runs nodemon + ts-node in ESM mode, recompiling on changes. The API listens on `PORT` from the env file (defaults to `5050`).
+Runs tsx in watch mode, recompiling on changes. The API listens on `PORT` from the env file (defaults to `5050`).
 
 ## Available Scripts
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm dev` | Start the API in watch mode with ts-node |
+| `pnpm dev` | Start the API in watch mode with tsx |
 | `pnpm prisma migrate dev` | Create/apply migrations and regenerate Prisma client |
 | `pnpm prisma generate` | Regenerate Prisma client manually |
-| `pnpm lint` / `pnpm test` | _Not configured yet_ (add when ready) |
+| `pnpm prisma db push` | Quick sync schema to database without migrations |
+| `pnpm test` | _Not configured yet_ (add when ready) |
 
-> ❗ **Production build**: the repo currently runs via ts-node; add a `tsc` build + `start` script before deploying to environments like Vercel/Node runtime functions.
+> ❗ **Production build**: The repo currently runs via tsx; add a `tsc` build + `start` script before deploying to production environments like Vercel/Node runtime functions.
 
-## API Surface
+## API Endpoints
 
 All endpoints respond with `{ status, message, data? }` JSON payloads.
 
-| Method | Path | Description | Auth |
-| --- | --- | --- | --- |
-| `POST` | `/auth/register` | Register and store a user (hashing password) | Public |
-| `POST` | `/auth/login` | Verify credentials and return `{ user, token }` | Public |
-| `POST` | `/auth/logout` | Stateless acknowledgment | Public |
-| `POST` | `/users` | Create a user (admin-style) | Public (adjust as needed) |
-| `GET` | `/users` | List users | Requires `Authorization: Bearer <token>` |
-| `GET` | `/users/:id` | Fetch a user by id | Requires token |
-| `PUT` | `/users/:id` | Update user fields | Requires token |
-| `DELETE` | `/users/:id` | Remove a user | Requires token |
+### Authentication Routes (`/auth`)
 
-`src/middleware/accessValidation.ts` handles JWT verification and attaches `req.userData` for downstream controllers.
+| Method | Path | Description | Auth | Validation |
+| --- | --- | --- | --- | --- |
+| `POST` | `/auth/register` | Register a new user with hashed password | Public | `registerUserSchema` |
+| `POST` | `/auth/login` | Verify credentials and return JWT token | Public | - |
+| `POST` | `/auth/logout` | Stateless logout acknowledgment | Public | - |
+
+### User Routes (`/users`)
+
+| Method | Path | Description | Auth | Validation |
+| --- | --- | --- | --- | --- |
+| `POST` | `/users` | Create a user (admin-style) | Required | `createUserSchema` |
+| `GET` | `/users` | List all users | Required | - |
+| `GET` | `/users/:id` | Fetch a user by ID | Required | - |
+| `PUT` | `/users/:id` | Update user fields (username, email, displayName) | Required | `updateUserSchema` |
+| `PATCH` | `/users/password` | Update current user's password | Required | `updatePasswordSchema` |
+| `DELETE` | `/users/:id` | Remove a user | Required | - |
+
+**Auth Required**: Endpoints require `Authorization: Bearer <token>` header.
+
+## Validation Schemas
+
+The API uses Zod for request validation with the following schemas:
+
+- **`registerUserSchema`**: Validates user registration (username, email, displayName, password)
+- **`createUserSchema`**: Validates user creation (username, email, displayName)
+- **`updateUserSchema`**: Validates user updates (partial fields)
+- **`updatePasswordSchema`**: Validates password changes (currentPassword, newPassword, confirmPassword)
+
+All schemas include:
+- Email format validation
+- Username length constraints (3-30 chars)
+- Display name length constraints (3-100 chars)
+- Password length constraints (6-100 chars)
+- Automatic lowercase transformation for usernames and emails
+
+## Middleware
+
+- **`authMiddleware`** (`src/middleware/auth.middleware.ts`): JWT verification and user authentication
+- **`validate`** (`src/middleware/validation.middleware.ts`): Zod schema validation for request body/params/query
 
 ## Adding New Modules
 
 1. **Plan the data shape** (Prisma model, DTOs, response contract).
-2. **Create routes** under `src/routes/<module>.routes.ts` and mount them in `src/routes/index.ts`.
-3. **Implement controllers** (validation + DTO parsing) in `src/controllers/<module>/`.
-4. **Add services** in `src/services/<module>/` and reuse `AppError` for controlled failures.
-5. **Create repositories** talking to Prisma in `src/repositories/<module>/`.
-6. **Add middleware/types** if you need new guards or request data.
-7. **Update docs/tests** and run the dev server to smoke-test.
+2. **Create Zod schemas** in `src/validations/<module>.validation.ts` for request validation.
+3. **Create routes** under `src/routes/<module>.routes.ts` and mount them in `src/routes/index.ts`.
+4. **Implement controllers** (validation + DTO parsing) in `src/controllers/<module>.controller.ts`.
+5. **Add services** in `src/services/<module>.service.ts` and reuse `AppError` for controlled failures.
+6. **Create repositories** talking to Prisma in `src/repositories/<module>.repository.ts`.
+7. **Add middleware/types** if you need new guards or request data.
+8. **Update docs/tests** and run the dev server to smoke-test.
+
+## Error Handling
+
+The API uses a custom `AppError` class for controlled error handling:
+- Consistent error responses across all endpoints
+- HTTP status code mapping
+- Detailed error messages for debugging
+
+## Security Features
+
+- ✅ Password hashing with bcrypt
+- ✅ JWT-based authentication
+- ✅ Request validation with Zod
+- ✅ Environment variable configuration
+- ✅ Unique constraints on username and email
+- ⚠️ CORS not configured (add if needed)
+- ⚠️ Rate limiting not implemented (add for production)
 
 ## Deployment Notes
 
-- Vercel’s Node runtime expects a build step; consider compiling with `tsc` to `dist/` and running `node dist/server.js`.
-- Prisma needs a reachable PostgreSQL database and generated client files included in the deployment package.
-- Set all env vars via Vercel Project Settings.
+- **Vercel/Node Runtime**: Requires a build step; compile with `tsc` to `dist/` and run `node dist/server.js`.
+- **Prisma**: Needs a reachable PostgreSQL database and generated client files included in the deployment package.
+- **Environment Variables**: Set all env vars via your hosting platform's settings.
+- **Database Migrations**: Run `pnpm prisma migrate deploy` in production.
 
 ## Roadmap / TODO
 
-- Add input validation (e.g., Zod or class-validator).
-- Implement automated tests (unit + integration).
+- [ ] Add automated tests (unit + integration)
+- [ ] Implement CORS configuration
+- [ ] Add rate limiting middleware
+- [ ] Set up production build script
+- [ ] Add API documentation (Swagger/OpenAPI)
+- [ ] Implement refresh token rotation
+- [ ] Add email verification flow
+- [ ] Add password reset functionality
