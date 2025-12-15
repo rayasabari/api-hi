@@ -12,6 +12,7 @@ const env = {
   port: Number(process.env.PORT) || 5050,
   jwtSecret: ensure(process.env.JWT_SECRET, 'JWT_SECRET'),
   jwtExpiration: process.env.JWT_EXPIRATION ?? '1h',
+  saltRounds: Number(process.env.SALT_ROUNDS) || 10,
 };
 
 export default env;

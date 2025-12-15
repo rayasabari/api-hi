@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
+import env from '../config/env.js';
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = env.saltRounds;
 
 /**
  * Hash a password using bcrypt
