@@ -46,6 +46,7 @@ PORT=5050
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
 JWT_SECRET=super-secret
 JWT_EXPIRATION=1h
+SALT_ROUNDS=10
 ```
 
 ### 3. Database & Prisma
@@ -140,8 +141,8 @@ The API uses a custom `AppError` class for controlled error handling:
 
 ## Security Features
 
-- ✅ Password hashing with bcrypt
-- ✅ JWT-based authentication
+- ✅ Password hashing with bcrypt (configurable salt rounds)
+- ✅ JWT-based authentication with configurable expiration
 - ✅ Request validation with Zod
 - ✅ Environment variable configuration
 - ✅ Unique constraints on username and email
