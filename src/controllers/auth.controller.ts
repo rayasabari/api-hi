@@ -49,10 +49,42 @@ const logout = (_req: Request, res: Response) =>
     message: 'User logged out successfully!',
   });
 
+const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    const result = await authService.forgotPassword(email);
+
+    return res.json({
+      status: 'success',
+      message: result.message,
+    });
+  } catch (error) {
+    return handleControllerError(error, res);
+  }
+};
+
+const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    const result = await authService.resetPassword(token, password);
+
+    return res.json({
+      status: 'success',
+      message: result.message,
+    });
+  } catch (error) {
+    return handleControllerError(error, res);
+  }
+};
+
 const authController = {
   register,
   login,
   logout,
+  forgotPassword,
+  resetPassword,
 };
 
 export default authController;

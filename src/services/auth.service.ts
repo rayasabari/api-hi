@@ -8,6 +8,8 @@ import userRepository from '../repositories/user.repository.ts';
 import type { PublicUser } from '../types/user.ts';
 import { toPublicUser } from './user.mapper.ts';
 import { hashPassword, comparePassword } from '../utils/password-utils.ts';
+import emailService from './email.service.ts';
+import { generateResetToken, hashToken } from '../utils/token-utils.ts';
 
 type RegisterInput = {
   username: string;
@@ -73,9 +75,57 @@ const login = async (
   };
 };
 
+const forgotPassword = async (email: string) => {
+  const user = await userRepository.findByEmail(email);
+
+  if (!user) {
+    return { message: 'If email exists, reset link has been sent' };
+  }
+
+  // Generate reset token
+  const resetToken = generateResetToken();
+  const hashedToken = hashToken(resetToken);
+
+  // Set expiry time
+  const expiresAt = new Date(Date.now() + env.resetPasswordTokenExpiry);
+
+  // Save reset token to database
+  await userRepository.saveResetToken(user.email, hashedToken, expiresAt);
+
+  // Send reset password email with unhashed token
+  await emailService.sendResetPasswordEmail(user.email, resetToken);
+
+  return { message: 'If email exists, reset link has been sent' };
+};
+
+const resetPassword = async (token: string, newPassword: string) => {
+  // Hash token received to match with database
+  const hashedToken = hashToken(token);
+
+  // Find user with valid and not expired reset token
+  const user = await userRepository.findByResetToken(hashedToken);
+
+  if (!user) {
+    throw new AppError('Invalid or expired reset token', 400);
+  }
+
+  // Hash new password
+  const hashedPassword = await hashPassword(newPassword);
+
+  // Update user password
+  await userRepository.updatePassword(user.id, hashedPassword);
+
+  // Clear reset token
+  await userRepository.clearResetToken(user.id);
+
+  return { message: 'Password has been reset successfully' };
+};
+
 const authService = {
   register,
   login,
+  forgotPassword,
+  resetPassword,
 };
 
 export default authService;

@@ -12,7 +12,7 @@ const validate = (schema: ZodType) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        
+
         const formattedErrors = error.issues.map(issue => ({
           parameter: issue.path[1] ? issue.path[1].toString() : '',
           message: issue.message,

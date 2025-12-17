@@ -19,6 +19,8 @@ const findByIdWithPassword = (id: number): Promise<User | null> =>
       displayName: true,
       email: true,
       password: true,
+      resetPasswordToken: true,
+      resetPasswordExpires: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -35,6 +37,49 @@ const update = (id: number, data: Prisma.UserUpdateInput): Promise<User> =>
 const deleteById = (id: number): Promise<User> =>
   prisma.user.delete({ where: { id } });
 
+const saveResetToken = async (
+  email: string,
+  hashedToken: string,
+  expiresAt: Date,
+): Promise<User> =>
+  prisma.user.update({
+    where: { email },
+    data: {
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: expiresAt,
+    },
+  });
+
+const findByResetToken = async (
+  hashedToken: string,
+): Promise<User | null> =>
+  prisma.user.findFirst({
+    where: {
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: {
+        gt: new Date(), // not expired token
+      },
+    },
+  });
+
+const clearResetToken = async (userId: number): Promise<User> =>
+  prisma.user.update({
+    where: { id: userId },
+    data: {
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    },
+  });
+
+const updatePassword = async (
+  userId: number,
+  hashedPassword: string,
+): Promise<User> =>
+  prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+
 const userRepository = {
   create,
   findByEmail,
@@ -43,6 +88,10 @@ const userRepository = {
   findAll,
   update,
   deleteById,
+  saveResetToken,
+  findByResetToken,
+  clearResetToken,
+  updatePassword,
 };
 
 export default userRepository;
