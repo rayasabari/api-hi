@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { requiredString } from '../utils/zod-helper.ts';
+import { passwordSchema } from './password.ts';
 
 const baseUserBody = z.object({
   username: requiredString("Username required")
@@ -28,7 +29,7 @@ export const createUserSchema = z.object({
 
 export const registerUserSchema = z.object({
   body: baseUserBody.extend({
-    password: z.string().min(6).max(100),
+    password: passwordSchema(),
   }),
 });
 
@@ -39,14 +40,7 @@ export const updateUserSchema = z.object({
 export const updatePasswordSchema = z.object({
   body: z.object({
     currentPassword: requiredString('Current password is required'),
-
-    newPassword: requiredString('New password is required')
-      .pipe(
-        z.string()
-          .min(6, 'New password must be at least 6 characters long')
-          .max(100, 'New password must be at most 100 characters long')
-      ),
-
+    newPassword: passwordSchema('New password'),
     confirmPassword: requiredString('Confirm password is required')
       .pipe(z.string().min(1, 'Confirm password cannot be empty')),
   }).refine((data) => data.newPassword === data.confirmPassword, {
@@ -66,15 +60,6 @@ export const resetPasswordSchema = z.object({
   body: z.object({
     token: requiredString('Token is required')
       .pipe(z.string().min(1, 'Token is required')),
-
-    password: requiredString('Password is required')
-      .pipe(
-        z.string()
-          .min(8, 'Password must be at least 8 characters')
-          .max(100, 'Password must be at most 100 characters')
-          .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-          .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-          .regex(/[0-9]/, 'Password must contain at least one number')
-      ),
+    password: passwordSchema(),
   }),
 });
