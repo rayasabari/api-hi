@@ -9,7 +9,12 @@ const ensure = (value: string | undefined, key: string): string => {
 };
 
 const env = {
+  // Server Configuration
+  nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 5050,
+  logLevel: process.env.LOG_LEVEL || 'info',
+
+  // JWT Configuration
   jwtSecret: ensure(process.env.JWT_SECRET, 'JWT_SECRET'),
   jwtExpiration: process.env.JWT_EXPIRATION ?? '1h',
   saltRounds: Number(process.env.SALT_ROUNDS) || 10,

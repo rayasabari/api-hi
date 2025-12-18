@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-
 import authService from '../services/auth.service.ts';
 import { handleControllerError } from './controller-utils.ts';
+import logger from '../config/logger.ts';
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -43,11 +43,17 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
-const logout = (_req: Request, res: Response) =>
-  res.json({
+const logout = (req: Request, res: Response) => {
+  logger.info({
+    action: 'user_logout',
+    userId: req.userData?.id,
+  }, 'User logged out');
+
+  return res.json({
     status: 'success',
     message: 'User logged out successfully!',
   });
+};
 
 const forgotPassword = async (req: Request, res: Response) => {
   try {

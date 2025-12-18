@@ -3,6 +3,7 @@ import { handleDuplicateEntryError } from '../errors/error-utils.ts';
 import userRepository from '../repositories/user.repository.ts';
 import type { PublicUser } from '../types/user.ts';
 import { toPublicUser } from './user.mapper.ts';
+import logger from '../config/logger.ts';
 
 type CreateUserInput = {
   username: string;
@@ -47,6 +48,15 @@ const updateUser = async (
   }
 
   const updatedUser = await userRepository.update(id, payload);
+
+  // Log profile update (audit trail)
+  logger.info({
+    action: 'user_profile_updated',
+    userId: id,
+    email: existing.email,
+    updatedFields: Object.keys(payload),
+  }, 'User profile updated');
+
   return toPublicUser(updatedUser);
 };
 
@@ -58,6 +68,14 @@ const deleteUser = async (id: number): Promise<void> => {
   }
 
   await userRepository.deleteById(id);
+
+  // Log user deletion (audit trail)
+  logger.warn({
+    action: 'user_deleted',
+    userId: id,
+    email: existing.email,
+    username: existing.username,
+  }, 'User deleted');
 };
 
 const updatePassword = async (
@@ -82,12 +100,28 @@ const updatePassword = async (
   const isPasswordValid = await comparePassword(currentPassword, user.password);
 
   if (!isPasswordValid) {
+    // Log failed password update (audit trail)
+    logger.warn({
+      action: 'password_update_failed',
+      userId: userId,
+      email: user.email,
+      reason: 'invalid_current_password',
+    }, 'Password update failed - invalid current password');
+
     throw new AppError('Invalid credentials!', 403);
   }
 
   // Check if new password is same as current password
   const isSamePassword = await comparePassword(newPassword, user.password);
   if (isSamePassword) {
+    // Log failed password update (audit trail)
+    logger.warn({
+      action: 'password_update_failed',
+      userId: userId,
+      email: user.email,
+      reason: 'same_as_current',
+    }, 'Password update failed - new password same as current');
+
     throw new AppError('New password must be different from current password!', 400);
   }
 
@@ -99,6 +133,13 @@ const updatePassword = async (
   await userRepository.update(userId, {
     password: hashedPassword,
   });
+
+  // Log successful password update (audit trail)
+  logger.info({
+    action: 'password_updated',
+    userId: userId,
+    email: user.email,
+  }, 'User password updated successfully');
 };
 
 const userService = {
