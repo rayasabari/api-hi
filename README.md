@@ -8,6 +8,9 @@ TypeScript/Express REST API that handles user management and authentication with
 - **Framework**: Express 5 with middleware-based architecture
 - **Database/ORM**: PostgreSQL + Prisma
 - **Auth**: bcrypt for password hashing, jsonwebtoken for JWT-based authentication
+- **Email**: Nodemailer for password reset emails
+- **Logging**: Pino for structured JSON logging and audit trails
+- **Security**: express-rate-limit for API protection
 - **Validation**: Zod for request validation with custom schemas
 - **Language/Tooling**: TypeScript (strict mode), tsx for development with hot reload
 
@@ -42,12 +45,32 @@ pnpm install
 Create `.env` (never commit it) with the required settings:
 
 ```env
+# Server Configuration
 PORT=5050
+NODE_ENV=development
+LOG_LEVEL=info
+
+# Database
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+
+# JWT Configuration
 JWT_SECRET=super-secret
 JWT_EXPIRATION=1h
 SALT_ROUNDS=10
+
+# Email Configuration (for password reset)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EMAIL_FROM=noreply@yourapp.com
+
+# Reset Password Configuration
+RESET_PASSWORD_TOKEN_EXPIRY=3600000
+FRONTEND_URL=http://localhost:8080
 ```
+
+> **Note for Gmail**: Use an App Password instead of your regular password. Enable 2FA and generate an App Password in Google Account Settings → Security → App passwords.
 
 ### 3. Database & Prisma
 
@@ -85,7 +108,9 @@ All endpoints respond with `{ status, message, data? }` JSON payloads.
 | --- | --- | --- | --- | --- |
 | `POST` | `/auth/register` | Register a new user with hashed password | Public | `registerUserSchema` |
 | `POST` | `/auth/login` | Verify credentials and return JWT token | Public | - |
-| `POST` | `/auth/logout` | Stateless logout acknowledgment | Public | - |
+| `POST` | `/auth/logout` | Logout and log the event | Required | - |
+| `POST` | `/auth/forgot-password` | Request password reset email (rate limited: 3/15min) | Public | `forgotPasswordSchema` |
+| `POST` | `/auth/reset-password` | Reset password using token from email | Public | `resetPasswordSchema` |
 
 ### User Routes (`/users`)
 
@@ -108,18 +133,21 @@ The API uses Zod for request validation with the following schemas:
 - **`createUserSchema`**: Validates user creation (username, email, displayName)
 - **`updateUserSchema`**: Validates user updates (partial fields)
 - **`updatePasswordSchema`**: Validates password changes (currentPassword, newPassword, confirmPassword)
+- **`forgotPasswordSchema`**: Validates email for password reset requests
+- **`resetPasswordSchema`**: Validates reset token and new password (min 8 chars, uppercase, lowercase, number)
 
 All schemas include:
 - Email format validation
 - Username length constraints (3-30 chars)
 - Display name length constraints (3-100 chars)
-- Password length constraints (6-100 chars)
+- Password length constraints (6-100 chars for regular, 8+ for reset with strength requirements)
 - Automatic lowercase transformation for usernames and emails
 
 ## Middleware
 
 - **`authMiddleware`** (`src/middleware/auth.middleware.ts`): JWT verification and user authentication
 - **`validate`** (`src/middleware/validation.middleware.ts`): Zod schema validation for request body/params/query
+- **`forgotPasswordLimiter`** (`src/middleware/rate-limit.middleware.ts`): Rate limiting for password reset (3 requests per 15 minutes)
 
 ## Adding New Modules
 
@@ -143,11 +171,44 @@ The API uses a custom `AppError` class for controlled error handling:
 
 - ✅ Password hashing with bcrypt (configurable salt rounds)
 - ✅ JWT-based authentication with configurable expiration
+- ✅ Password reset with secure token generation (SHA-256 hashing, 1-hour expiry
+- ✅ Rate limiting on password reset endpoint (3 requests per 15 minutes
+- ✅ Email enumeration prevention (same response for existing/non-existing emails
+- ✅ Comprehensive audit logging with Pino (15+ event types tracked
 - ✅ Request validation with Zod
 - ✅ Environment variable configuration
 - ✅ Unique constraints on username and email
 - ⚠️ CORS not configured (add if needed)
-- ⚠️ Rate limiting not implemented (add for production)
+
+## Audit Logging
+
+The API uses **Pino** for structured JSON logging with comprehensive audit trails:
+
+**Logged Events:**
+- User registration (success/failure)
+- Login attempts (success/failure with reasons)
+- Logout events
+- Password reset requests
+- Password reset completions
+- Profile updates
+- User deletions
+- Password changes
+
+**Log Format:**
+- Development: Pretty-printed colored output
+- Production: Structured JSON for log aggregation services (Axiom, Logtail, Datadog)
+
+**Example Log:**
+```json
+{
+  "level": 30,
+  "time": 1702890637123,
+  "action": "user_login",
+  "userId": 1,
+  "email": "user@example.com",
+  "msg": "User logged in successfully"
+}
+```
 
 ## Deployment Notes
 
@@ -160,9 +221,10 @@ The API uses a custom `AppError` class for controlled error handling:
 
 - [ ] Add automated tests (unit + integration)
 - [ ] Implement CORS configuration
-- [ ] Add rate limiting middleware
 - [ ] Set up production build script
 - [ ] Add API documentation (Swagger/OpenAPI)
 - [ ] Implement refresh token rotation
 - [ ] Add email verification flow
-- [ ] Add password reset functionality
+- [x] ~~Add password reset functionality~~ ✅ **Completed**
+- [x] ~~Add rate limiting middleware~~ ✅ **Completed**
+- [x] ~~Add audit logging~~ ✅ **Completed**
