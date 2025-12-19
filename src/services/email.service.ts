@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import env from '../config/env.ts';
+import { formatDuration } from '../utils/time-utils.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,8 +45,28 @@ const sendResetPasswordEmail = async (email: string, resetToken: string) => {
   await transporter.sendMail(mailOptions);
 };
 
+const sendVerificationEmail = async (email: string, verificationToken: string) => {
+  const verificationUrl = `${env.frontendUrl}/verify-email?token=${verificationToken}`;
+  const expiryTime = formatDuration(env.emailVerificationTokenExpiry);
+
+  const html = await loadEmailTemplate('verify-email', {
+    verificationUrl,
+    expiryTime,
+  });
+
+  const mailOptions = {
+    from: env.emailFrom,
+    to: email,
+    subject: 'Verify Your Email Address',
+    html,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 const emailService = {
   sendResetPasswordEmail,
+  sendVerificationEmail,
 };
 
 export default emailService;

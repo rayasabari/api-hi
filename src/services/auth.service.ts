@@ -8,7 +8,7 @@ import type { PublicUser } from '../types/user.ts';
 import { toPublicUser } from './user.mapper.ts';
 import { hashPassword, comparePassword } from '../utils/password-utils.ts';
 import emailService from './email.service.ts';
-import { generateResetToken, hashToken } from '../utils/token-utils.ts';
+import { generateResetToken, generateVerificationToken, hashToken } from '../utils/token-utils.ts';
 import logger from '../config/logger.ts';
 
 type RegisterInput = {
@@ -27,12 +27,22 @@ const register = async (payload: RegisterInput): Promise<PublicUser> => {
   try {
     const hashedPassword = await hashPassword(payload.password);
 
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const verificationExpires = new Date(Date.now() + env.emailVerificationTokenExpiry);
+
     const user = await userRepository.create({
       username: payload.username,
       displayName: payload.displayName,
       email: payload.email,
       password: hashedPassword,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires,
     });
+
+    // Send verification email
+    await emailService.sendVerificationEmail(user.email, verificationToken);
 
     // Log successful registration (audit trail)
     logger.info({
@@ -40,7 +50,9 @@ const register = async (payload: RegisterInput): Promise<PublicUser> => {
       userId: user.id,
       email: user.email,
       username: user.username,
-    }, 'User registered successfully');
+      verificationEmailSent: true,
+      tokenExpiresAt: verificationExpires.toISOString(),
+    }, 'User registered successfully and verification email sent');
 
     return toPublicUser(user);
   } catch (error) {
@@ -196,11 +208,87 @@ const resetPassword = async (token: string, newPassword: string) => {
   return { message: 'Password has been reset successfully' };
 };
 
+const verifyEmail = async (token: string) => {
+  const user = await userRepository.findByVerificationToken(token);
+
+  if (!user) {
+    // Log failed verification attempt (audit trail)
+    logger.warn({
+      action: 'email_verification_failed',
+      reason: 'invalid_or_expired_token',
+      tokenPrefix: token.substring(0, 10) + '...',
+    }, 'Email verification failed - invalid or expired token');
+
+    throw new AppError('Invalid or expired verification token', 400);
+  }
+
+  // Update user - set verified and clear token
+  await userRepository.clearVerificationToken(user.id);
+
+  // Log successful verification (audit trail)
+  logger.info({
+    action: 'email_verified',
+    userId: user.id,
+    email: user.email,
+  }, 'Email verified successfully');
+
+  return { message: 'Email verified successfully!' };
+};
+
+const resendVerification = async (email: string) => {
+  const user = await userRepository.findByEmail(email);
+
+  // Log resend request (audit trail)
+  logger.info({
+    action: 'resend_verification_requested',
+    email: email,
+    userExists: !!user,
+  }, 'Resend verification requested');
+
+  if (!user) {
+    // Don't reveal if email exists (security)
+    return { message: 'If the email exists, a verification link has been sent.' };
+  }
+
+  if (user.emailVerified) {
+    // Log attempt to resend for already verified email (audit trail)
+    logger.warn({
+      action: 'resend_verification_failed',
+      userId: user.id,
+      email: user.email,
+      reason: 'already_verified',
+    }, 'Resend verification failed - email already verified');
+
+    throw new AppError('Email is already verified', 400);
+  }
+
+  // Generate new token
+  const verificationToken = generateVerificationToken();
+  const verificationExpires = new Date(Date.now() + env.emailVerificationTokenExpiry);
+
+  await userRepository.saveVerificationToken(user.id, verificationToken, verificationExpires);
+
+  // Send verification email
+  await emailService.sendVerificationEmail(user.email, verificationToken);
+
+  // Log successful resend (audit trail)
+  logger.info({
+    action: 'verification_email_resent',
+    userId: user.id,
+    email: user.email,
+    tokenExpiresAt: verificationExpires.toISOString(),
+  }, 'Verification email resent successfully');
+
+  return { message: 'Verification email sent!' };
+};
+
 const authService = {
   register,
   login,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
 };
 
 export default authService;

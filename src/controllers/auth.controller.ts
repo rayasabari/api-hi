@@ -85,12 +85,44 @@ const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
+const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+
+    const result = await authService.verifyEmail(token);
+
+    return res.json({
+      status: 'success',
+      message: result.message,
+    });
+  } catch (error) {
+    return handleControllerError(error, res);
+  }
+};
+
+const resendVerification = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    const result = await authService.resendVerification(email);
+
+    return res.json({
+      status: 'success',
+      message: result.message,
+    });
+  } catch (error) {
+    return handleControllerError(error, res);
+  }
+};
+
 const authController = {
   register,
   login,
   logout,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
 };
 
 export default authController;

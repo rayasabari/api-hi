@@ -28,6 +28,10 @@ const env = {
 
   // Reset Password Configuration
   resetPasswordTokenExpiry: Number(process.env.RESET_PASSWORD_TOKEN_EXPIRY) || 3600000, // 1 hour in milliseconds
+
+  // Email Verification Configuration
+  emailVerificationTokenExpiry: Number(process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY) || 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:8080',
 };
 

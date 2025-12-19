@@ -19,6 +19,9 @@ const findByIdWithPassword = (id: number): Promise<User | null> =>
       displayName: true,
       email: true,
       password: true,
+      emailVerified: true,
+      emailVerificationToken: true,
+      emailVerificationExpires: true,
       resetPasswordToken: true,
       resetPasswordExpires: true,
       createdAt: true,
@@ -80,6 +83,41 @@ const updatePassword = async (
     data: { password: hashedPassword },
   });
 
+const saveVerificationToken = async (
+  userId: number,
+  token: string,
+  expiresAt: Date,
+): Promise<User> =>
+  prisma.user.update({
+    where: { id: userId },
+    data: {
+      emailVerificationToken: token,
+      emailVerificationExpires: expiresAt,
+    },
+  });
+
+const findByVerificationToken = async (
+  token: string,
+): Promise<User | null> =>
+  prisma.user.findFirst({
+    where: {
+      emailVerificationToken: token,
+      emailVerificationExpires: {
+        gt: new Date(), // not expired token
+      },
+    },
+  });
+
+const clearVerificationToken = async (userId: number): Promise<User> =>
+  prisma.user.update({
+    where: { id: userId },
+    data: {
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null,
+    },
+  });
+
 const userRepository = {
   create,
   findByEmail,
@@ -92,6 +130,9 @@ const userRepository = {
   findByResetToken,
   clearResetToken,
   updatePassword,
+  saveVerificationToken,
+  findByVerificationToken,
+  clearVerificationToken,
 };
 
 export default userRepository;
