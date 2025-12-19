@@ -18,16 +18,16 @@ export const forgotPasswordLimiter = rateLimit({
 
 /**
  * Rate limiter for resend verification endpoint
- * Implements cooldown to prevent spam and abuse
- * - 1 minute cooldown between requests (max 1 request per minute)
- * - This acts as a cooldown mechanism
+ * Prevents spam while allowing legitimate retries
+ * - 3 attempts per 10 minutes
+ * - Window-based approach for better spam protection
  */
 export const resendVerificationLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute cooldown
-  max: 1, // Max 1 request per window (enforces cooldown)
+  windowMs: 10 * 60 * 1000, // 10 minute window
+  max: 3, // Max 3 attempts per window
   message: {
     status: 'error',
-    message: 'Please wait 1 minute before requesting another verification email',
+    message: 'Too many verification emails requested. Please try again in 10 minutes.',
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
