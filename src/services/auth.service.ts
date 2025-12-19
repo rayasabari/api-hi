@@ -1,5 +1,3 @@
-import jwt from 'jsonwebtoken';
-import type { Secret, SignOptions } from 'jsonwebtoken';
 import { handleDuplicateEntryError } from '../errors/error-utils.ts';
 import env from '../config/env.ts';
 import { AppError } from '../errors/app-error.ts';
@@ -8,7 +6,7 @@ import type { PublicUser } from '../types/user.ts';
 import { toPublicUser } from './user.mapper.ts';
 import { hashPassword, comparePassword } from '../utils/password-utils.ts';
 import emailService from './email.service.ts';
-import { generateResetToken, generateVerificationToken, hashToken } from '../utils/token-utils.ts';
+import { generateResetToken, generateVerificationToken, hashToken, generateJwtToken } from '../utils/token-utils.ts';
 import logger from '../config/logger.ts';
 
 type RegisterInput = {
@@ -111,14 +109,7 @@ const login = async (
   }
 
   const publicUser = toPublicUser(user);
-  const secret: Secret = env.jwtSecret;
-  const token = jwt.sign(
-    publicUser,
-    secret,
-    {
-      expiresIn: env.jwtExpiration,
-    } as SignOptions,
-  );
+  const token = generateJwtToken(publicUser, env.jwtSecret, env.jwtExpiration);
 
   // Log successful login (audit trail)
   logger.info({
