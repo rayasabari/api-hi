@@ -46,8 +46,9 @@ Create `.env` (never commit it) with the required settings:
 
 ```env
 # Server Configuration
-PORT=5050
 NODE_ENV=development
+FRONTEND_URL=http://localhost:8080
+PORT=5050
 LOG_LEVEL=info
 
 # Database
@@ -58,16 +59,16 @@ JWT_SECRET=super-secret
 JWT_EXPIRATION=1h
 SALT_ROUNDS=10
 
-# Email Configuration (for password reset)
+# Email Configuration
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password
 EMAIL_FROM=noreply@yourapp.com
 
-# Reset Password Configuration
+# Token Configuration
 RESET_PASSWORD_TOKEN_EXPIRY=3600000
-FRONTEND_URL=http://localhost:8080
+EMAIL_VERIFICATION_TOKEN_EXPIRY=86400000
 ```
 
 > **Note for Gmail**: Use an App Password instead of your regular password. Enable 2FA and generate an App Password in Google Account Settings → Security → App passwords.
@@ -106,9 +107,11 @@ All endpoints respond with `{ status, message, data? }` JSON payloads.
 
 | Method | Path | Description | Auth | Validation |
 | --- | --- | --- | --- | --- |
-| `POST` | `/auth/register` | Register a new user with hashed password | Public | `registerUserSchema` |
+| `POST` | `/auth/register` | Register a new user and send verification email | Public | `registerUserSchema` |
 | `POST` | `/auth/login` | Verify credentials and return JWT token | Public | - |
 | `POST` | `/auth/logout` | Logout and log the event | Required | - |
+| `POST` | `/auth/verify-email` | Verify email address using token from email | Public | `verifyEmailSchema` |
+| `POST` | `/auth/resend-verification` | Resend verification email (rate limited: 3/10min) | Public | `resendVerificationSchema` |
 | `POST` | `/auth/forgot-password` | Request password reset email (rate limited: 3/15min) | Public | `forgotPasswordSchema` |
 | `POST` | `/auth/reset-password` | Reset password using token from email | Public | `resetPasswordSchema` |
 
@@ -133,6 +136,8 @@ The API uses Zod for request validation with the following schemas:
 - **`createUserSchema`**: Validates user creation (username, email, displayName)
 - **`updateUserSchema`**: Validates user updates (partial fields)
 - **`updatePasswordSchema`**: Validates password changes (currentPassword, newPassword, confirmPassword)
+- **`verifyEmailSchema`**: Validates email verification token
+- **`resendVerificationSchema`**: Validates email for resending verification
 - **`forgotPasswordSchema`**: Validates email for password reset requests
 - **`resetPasswordSchema`**: Validates reset token and new password (min 8 chars, uppercase, lowercase, number)
 
@@ -148,6 +153,7 @@ All schemas include:
 - **`authMiddleware`** (`src/middleware/auth.middleware.ts`): JWT verification and user authentication
 - **`validate`** (`src/middleware/validation.middleware.ts`): Zod schema validation for request body/params/query
 - **`forgotPasswordLimiter`** (`src/middleware/rate-limit.middleware.ts`): Rate limiting for password reset (3 requests per 15 minutes)
+- **`resendVerificationLimiter`** (`src/middleware/rate-limit.middleware.ts`): Rate limiting for resending verification emails (3 requests per 10 minutes)
 
 ## Adding New Modules
 
@@ -171,10 +177,11 @@ The API uses a custom `AppError` class for controlled error handling:
 
 - ✅ Password hashing with bcrypt (configurable salt rounds)
 - ✅ JWT-based authentication with configurable expiration
-- ✅ Password reset with secure token generation (SHA-256 hashing, 1-hour expiry
-- ✅ Rate limiting on password reset endpoint (3 requests per 15 minutes
-- ✅ Email enumeration prevention (same response for existing/non-existing emails
-- ✅ Comprehensive audit logging with Pino (15+ event types tracked
+- ✅ Email verification with secure token generation (24-hour expiry by default)
+- ✅ Password reset with secure token generation (SHA-256 hashing, 1-hour expiry)
+- ✅ Rate limiting on password reset and email verification endpoints
+- ✅ Email enumeration prevention (same response for existing/non-existing emails)
+- ✅ Comprehensive audit logging with Pino (15+ event types tracked)
 - ✅ Request validation with Zod
 - ✅ Environment variable configuration
 - ✅ Unique constraints on username and email
@@ -188,6 +195,8 @@ The API uses **Pino** for structured JSON logging with comprehensive audit trail
 - User registration (success/failure)
 - Login attempts (success/failure with reasons)
 - Logout events
+- Email verification (success/failure)
+- Resend verification requests
 - Password reset requests
 - Password reset completions
 - Profile updates
@@ -224,7 +233,7 @@ The API uses **Pino** for structured JSON logging with comprehensive audit trail
 - [ ] Set up production build script
 - [ ] Add API documentation (Swagger/OpenAPI)
 - [ ] Implement refresh token rotation
-- [ ] Add email verification flow
+- [x] ~~Add email verification flow~~ ✅ **Completed**
 - [x] ~~Add password reset functionality~~ ✅ **Completed**
 - [x] ~~Add rate limiting middleware~~ ✅ **Completed**
 - [x] ~~Add audit logging~~ ✅ **Completed**
