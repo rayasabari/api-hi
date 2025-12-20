@@ -69,6 +69,10 @@ EMAIL_FROM=noreply@yourapp.com
 # Token Configuration
 RESET_PASSWORD_TOKEN_EXPIRY=3600000
 EMAIL_VERIFICATION_TOKEN_EXPIRY=86400000
+
+# CORS Configuration
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080,https://yourdomain.com
+CORS_CREDENTIALS=true
 ```
 
 > **Note for Gmail**: Use an App Password instead of your regular password. Enable 2FA and generate an App Password in Google Account Settings → Security → App passwords.
@@ -185,7 +189,72 @@ The API uses a custom `AppError` class for controlled error handling:
 - ✅ Request validation with Zod
 - ✅ Environment variable configuration
 - ✅ Unique constraints on username and email
-- ⚠️ CORS not configured (add if needed)
+- ✅ CORS with origin whitelisting and credentials support
+
+## CORS Configuration
+
+The API includes Cross-Origin Resource Sharing (CORS) support to allow requests from different origins (e.g., frontend applications).
+
+### Configuration
+
+CORS is configured via environment variables in `.env`:
+
+```env
+# Comma-separated list of allowed origins
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080,https://yourdomain.com
+
+# Allow credentials (cookies, authorization headers)
+CORS_CREDENTIALS=true
+```
+
+### Features
+
+- **Origin Whitelisting**: Only specified origins can access the API
+- **Dynamic Validation**: Origins are validated against the whitelist on each request
+- **Credentials Support**: Allows sending cookies and authorization headers when enabled
+- **Preflight Caching**: OPTIONS requests are cached for 24 hours to improve performance
+- **Comprehensive Headers**: Supports common headers like `Content-Type`, `Authorization`, `X-Requested-With`
+
+### Security Best Practices
+
+> [!WARNING]
+> **Production Security**
+> - Never use `*` (wildcard) for `ALLOWED_ORIGINS` in production
+> - Only add trusted domains to the whitelist
+> - Use HTTPS for production origins (e.g., `https://yourdomain.com`)
+> - Regularly audit the allowed origins list
+
+> [!IMPORTANT]
+> **Credentials Configuration**
+> - Set `CORS_CREDENTIALS=true` only if you're using cookies or need to send authorization headers
+> - When credentials are enabled, you cannot use wildcard origins
+> - Frontend must include `credentials: 'include'` (fetch) or `withCredentials: true` (axios)
+
+### Environment-Specific Setup
+
+**Development:**
+```env
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:8080
+CORS_CREDENTIALS=true
+```
+
+**Production:**
+```env
+ALLOWED_ORIGINS=https://yourdomain.com,https://admin.yourdomain.com
+CORS_CREDENTIALS=true
+```
+
+### Troubleshooting
+
+**CORS Error: "No 'Access-Control-Allow-Origin' header"**
+- Verify the origin is in `ALLOWED_ORIGINS`
+- Check that CORS middleware is applied before routes in `src/app.ts`
+- Ensure environment variables are loaded correctly
+
+**Credentials Not Working:**
+- Set `CORS_CREDENTIALS=true` in `.env`
+- Frontend must send `credentials: 'include'` or `withCredentials: true`
+- Origin must be specific (not `*`)
 
 ## Audit Logging
 
@@ -229,7 +298,7 @@ The API uses **Pino** for structured JSON logging with comprehensive audit trail
 ## Roadmap / TODO
 
 - [ ] Add automated tests (unit + integration)
-- [ ] Implement CORS configuration
+- [x] ~~Implement CORS configuration~~ ✅ **Completed**
 - [ ] Set up production build script
 - [ ] Add API documentation (Swagger/OpenAPI)
 - [ ] Implement refresh token rotation
