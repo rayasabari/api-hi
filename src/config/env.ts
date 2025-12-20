@@ -33,6 +33,10 @@ const env = {
   emailVerificationTokenExpiry: Number(process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY) || 24 * 60 * 60 * 1000, // 24 hours in milliseconds
 
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:8080',
+
+  // CORS Configuration
+  allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [],
+  corsCredentials: process.env.CORS_CREDENTIALS === 'true',
 };
 
 export default env;
