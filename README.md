@@ -27,6 +27,7 @@ src/
 ├── middleware/           # Cross-cutting middleware (auth, validation)
 ├── routes/               # Express routers mounted under /auth and /users
 ├── validations/          # Zod schemas for request validation
+├── views/                # Email templates
 ├── errors/               # Custom AppError type & error utilities
 ├── utils/                # Shared utilities (password, string, Zod helpers)
 └── types/                # Shared TS types & Express module augmentation
@@ -155,6 +156,7 @@ All schemas include:
 ## Middleware
 
 - **`authMiddleware`** (`src/middleware/auth.middleware.ts`): JWT verification and user authentication
+- **`requireVerified`** (`src/middleware/require-verified.middleware.ts`): Ensures user email is verified before access
 - **`validate`** (`src/middleware/validation.middleware.ts`): Zod schema validation for request body/params/query
 - **`forgotPasswordLimiter`** (`src/middleware/rate-limit.middleware.ts`): Rate limiting for password reset (3 requests per 15 minutes)
 - **`resendVerificationLimiter`** (`src/middleware/rate-limit.middleware.ts`): Rate limiting for resending verification emails (3 requests per 10 minutes)
@@ -302,6 +304,7 @@ The API uses **Pino** for structured JSON logging with comprehensive audit trail
 - [ ] Set up production build script
 - [ ] Add API documentation (Swagger/OpenAPI)
 - [ ] Implement refresh token rotation
+- [ ] Implement Role Based Access Control (RBAC)
 - [x] ~~Add email verification flow~~ ✅ **Completed**
 - [x] ~~Add password reset functionality~~ ✅ **Completed**
 - [x] ~~Add rate limiting middleware~~ ✅ **Completed**
