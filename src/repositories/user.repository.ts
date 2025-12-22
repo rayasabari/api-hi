@@ -1,4 +1,4 @@
-import type { Prisma, User } from '../../generated/prisma/client.ts';
+import type { Prisma, User } from '../generated/prisma/client.ts';
 import prisma from '../config/prisma.ts';
 
 const create = (data: Prisma.UserCreateInput): Promise<User> =>

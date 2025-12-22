@@ -1,4 +1,4 @@
-import { Prisma } from '../../generated/prisma/client.ts';
+import { Prisma } from '../generated/prisma/client.ts';
 import { AppError } from './app-error.ts';
 import { camelCaseToTitleCase } from '../utils/string-utils.ts';
 

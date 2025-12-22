@@ -13,6 +13,10 @@ const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 5050,
   logLevel: process.env.LOG_LEVEL || 'info',
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:8080',
+
+  // Database Configuration
+  databaseUrl: ensure(process.env.DATABASE_URL, 'DATABASE_URL'),
 
   // JWT Configuration
   jwtSecret: ensure(process.env.JWT_SECRET, 'JWT_SECRET'),
@@ -31,8 +35,6 @@ const env = {
 
   // Email Verification Configuration
   emailVerificationTokenExpiry: Number(process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY) || 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:8080',
 
   // CORS Configuration
   allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [],

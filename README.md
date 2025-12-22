@@ -82,7 +82,7 @@ CORS_CREDENTIALS=true
 
 1. Model updates live in `prisma/schema.prisma`.
 2. Apply migrations: `pnpm prisma migrate dev` (for local) or `pnpm prisma db push` for quick sync.
-3. Generate the Prisma client (needed whenever the schema changes): `pnpm prisma generate`. Output lands in `generated/prisma`.
+3. Generate the Prisma client (needed whenever the schema changes): `pnpm prisma generate`. Output lands in `src/generated/prisma`.
 
 ### 4. Development
 

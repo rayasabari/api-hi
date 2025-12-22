@@ -1,4 +1,4 @@
-import type { User } from '../../generated/prisma/client.ts';
+import type { User } from '../generated/prisma/client.ts';
 import type { PublicUser } from '../types/user.ts';
 
 export const toPublicUser = (user: User): PublicUser => ({
