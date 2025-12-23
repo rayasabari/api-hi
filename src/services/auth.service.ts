@@ -1,13 +1,13 @@
-import { handleDuplicateEntryError } from '../errors/error-utils.ts';
-import env from '../config/env.ts';
-import { AppError } from '../errors/app-error.ts';
-import userRepository from '../repositories/user.repository.ts';
-import type { PublicUser } from '../types/user.ts';
-import { toPublicUser } from './user.mapper.ts';
-import { hashPassword, comparePassword } from '../utils/password-utils.ts';
-import emailService from './email.service.ts';
-import { generateResetToken, generateVerificationToken, hashToken, generateJwtToken } from '../utils/token-utils.ts';
-import logger from '../config/logger.ts';
+import { handleDuplicateEntryError } from '../errors/error-utils';
+import env from '../config/env';
+import { AppError } from '../errors/app-error';
+import userRepository from '../repositories/user.repository';
+import type { PublicUser } from '../types/user';
+import { toPublicUser } from './user.mapper';
+import { hashPassword, comparePassword } from '../utils/password-utils';
+import emailService from './email.service';
+import { generateResetToken, generateVerificationToken, hashToken, generateJwtToken } from '../utils/token-utils';
+import logger from '../config/logger';
 
 type RegisterInput = {
   username: string;

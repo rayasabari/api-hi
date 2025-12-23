@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
-import userService from '../services/user.service.ts';
-import { handleControllerError } from './controller-utils.ts';
+import userService from '../services/user.service';
+import { handleControllerError } from './controller-utils';
 
 const parseUserIdParam = (req: Request, res: Response): number | null => {
   const id = Number(req.params.id);

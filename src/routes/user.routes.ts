@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import type { Router as ExpressRouter } from 'express';
-import authMiddleware from '../middleware/auth.middleware.ts';
-import requireVerifiedEmail from '../middleware/require-verified.middleware.ts';
-import validate from '../middleware/validation.middleware.ts';
-import { createUserSchema, updateUserSchema, updatePasswordSchema } from '../validations/user.validation.ts';
-import userController from '../controllers/user.controller.ts';
+import authMiddleware from '../middleware/auth.middleware';
+import requireVerifiedEmail from '../middleware/require-verified.middleware';
+import validate from '../middleware/validation.middleware';
+import { createUserSchema, updateUserSchema, updatePasswordSchema } from '../validations/user.validation';
+import userController from '../controllers/user.controller';
 
 
 const userRouter: ExpressRouter = Router();

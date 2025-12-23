@@ -1,5 +1,5 @@
 import type { CorsOptions } from 'cors';
-import env from './env.ts';
+import env from './env';
 
 /**
  * CORS Configuration

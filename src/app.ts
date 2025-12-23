@@ -1,8 +1,8 @@
 import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
-import corsOptions from './config/cors.config.ts';
-import routes from './routes/index.ts';
+import corsOptions from './config/cors.config';
+import routes from './routes/index';
 
 const app: Express = express();
 

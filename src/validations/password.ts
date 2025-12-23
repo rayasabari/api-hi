@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requiredString } from '../utils/zod-helper.ts';
+import { requiredString } from '../utils/zod-helper';
 
 export const passwordSchema = (fieldName = "Password") => {
   return requiredString(`${fieldName} is required`)

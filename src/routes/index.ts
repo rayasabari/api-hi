@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import type { Router as ExpressRouter } from 'express';
 
-import authRoutes from './auth.routes.ts';
-import userRoutes from './user.routes.ts';
+import authRoutes from './auth.routes';
+import userRoutes from './user.routes';
 
 const router: ExpressRouter = Router();
 

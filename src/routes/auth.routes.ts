@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import type { Router as ExpressRouter } from 'express';
-import validate from '../middleware/validation.middleware.ts';
-import authMiddleware from '../middleware/auth.middleware.ts';
-import { forgotPasswordLimiter, resendVerificationLimiter } from '../middleware/rate-limit.middleware.ts';
+import validate from '../middleware/validation.middleware';
+import authMiddleware from '../middleware/auth.middleware';
+import { forgotPasswordLimiter, resendVerificationLimiter } from '../middleware/rate-limit.middleware';
 import {
   registerUserSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   verifyEmailSchema,
   resendVerificationSchema,
-} from '../validations/user.validation.ts';
-import authController from '../controllers/auth.controller.ts';
+} from '../validations/user.validation';
+import authController from '../controllers/auth.controller';
 
 const authRouter: ExpressRouter = Router();
 

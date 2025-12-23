@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import env from '../config/env.js';
+import env from '../config/env';
 
 const SALT_ROUNDS = env.saltRounds;
 

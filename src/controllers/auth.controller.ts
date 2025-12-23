@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import authService from '../services/auth.service.ts';
-import { handleControllerError } from './controller-utils.ts';
-import logger from '../config/logger.ts';
+import authService from '../services/auth.service';
+import { handleControllerError } from './controller-utils';
+import logger from '../config/logger';
 
 const register = async (req: Request, res: Response) => {
   try {

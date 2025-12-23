@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { requiredString } from '../utils/zod-helper.ts';
-import { passwordSchema } from './password.ts';
+import { requiredString } from '../utils/zod-helper';
+import { passwordSchema } from './password';
 
 const baseUserBody = z.object({
   username: requiredString("Username required")

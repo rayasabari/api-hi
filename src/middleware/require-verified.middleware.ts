@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
-import prisma from '../config/prisma.ts';
-import logger from '../config/logger.ts';
+import prisma from '../config/prisma';
+import logger from '../config/logger';
 
 const requireVerifiedEmail = async (
   req: Request,

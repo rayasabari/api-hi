@@ -2,8 +2,8 @@ import nodemailer from 'nodemailer';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import env from '../config/env.ts';
-import { formatDuration } from '../utils/time-utils.ts';
+import env from '../config/env';
+import { formatDuration } from '../utils/time-utils';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

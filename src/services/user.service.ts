@@ -1,9 +1,9 @@
-import { AppError } from '../errors/app-error.ts';
-import { handleDuplicateEntryError } from '../errors/error-utils.ts';
-import userRepository from '../repositories/user.repository.ts';
-import type { PublicUser } from '../types/user.ts';
-import { toPublicUser } from './user.mapper.ts';
-import logger from '../config/logger.ts';
+import { AppError } from '../errors/app-error';
+import { handleDuplicateEntryError } from '../errors/error-utils';
+import userRepository from '../repositories/user.repository';
+import type { PublicUser } from '../types/user';
+import { toPublicUser } from './user.mapper';
+import logger from '../config/logger';
 
 type CreateUserInput = {
   username: string;
@@ -96,7 +96,7 @@ const updatePassword = async (
   }
 
   // Verify current password
-  const { comparePassword } = await import('../utils/password-utils.ts');
+  const { comparePassword } = await import('../utils/password-utils');
   const isPasswordValid = await comparePassword(currentPassword, user.password);
 
   if (!isPasswordValid) {
@@ -126,7 +126,7 @@ const updatePassword = async (
   }
 
   // Hash new password
-  const { hashPassword } = await import('../utils/password-utils.ts');
+  const { hashPassword } = await import('../utils/password-utils');
   const hashedPassword = await hashPassword(newPassword);
 
   // Update password

@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-
-import env from '../config/env.ts';
-import type { PublicUser } from '../types/user.ts';
+import { AppError } from '../errors/app-error';
+import env from '../config/env';
+import type { PublicUser } from '../types/user';
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authorizationHeader = req.headers.authorization;
