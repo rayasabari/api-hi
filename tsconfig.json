@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "esnext",
     "moduleResolution": "bundler",
-    "target": "esnext",
+    "target": "es2022",
     "types": ["node"],
     "typeRoots": [
       "./src/types",
@@ -45,6 +45,9 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "noEmit": true,
-  }
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "noEmit": true
+  },
+  "exclude": ["prisma.config.ts"]
 }

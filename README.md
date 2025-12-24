@@ -100,6 +100,8 @@ Runs tsx in watch mode, recompiling on changes. The API listens on `PORT` from t
 | `pnpm prisma migrate dev` | Create/apply migrations and regenerate Prisma client |
 | `pnpm prisma generate` | Regenerate Prisma client manually |
 | `pnpm prisma db push` | Quick sync schema to database without migrations |
+| `pnpm build` | Build the API for production (bundles with tsup) |
+| `pnpm start` | Start the production server from `dist/` |
 | `pnpm test` | _Not configured yet_ (add when ready) |
 
 > ❗ **Production build**: The repo currently runs via tsx; add a `tsc` build + `start` script before deploying to production environments like Vercel/Node runtime functions.
@@ -290,18 +292,33 @@ The API uses **Pino** for structured JSON logging with comprehensive audit trail
 }
 ```
 
-## Deployment Notes
+## Deployment
 
-- **Vercel/Node Runtime**: Requires a build step; compile with `tsc` to `dist/` and run `node dist/server.js`.
-- **Prisma**: Needs a reachable PostgreSQL database and generated client files included in the deployment package.
-- **Environment Variables**: Set all env vars via your hosting platform's settings.
-- **Database Migrations**: Run `pnpm prisma migrate deploy` in production.
+### Production Build
+The project is configured to use `tsup` for efficient bundling.
+
+1. **Build**: `pnpm build`
+   - Cleans `dist/`
+   - Bundles `src/server.ts` and dependencies to `dist/server.js`
+   - Copies email templates to `dist/views/emails`
+2. **Start**: `pnpm start`
+   - Runs `node dist/server.js`
+
+### Hosting Recommendations
+- **Railway/Render**: Ideal for this Node.js setup. They will automatically detect the `build` and `start` scripts in `package.json`.
+- **VPS (Coolify/Docker)**: Full control over the environment. Ensure `DATABASE_URL` is set and migrations are run.
+
+### Database Migrations
+Always run migrations in production before starting the app:
+```bash
+pnpm prisma migrate deploy
+```
 
 ## Roadmap / TODO
 
 - [ ] Add automated tests (unit + integration)
 - [x] ~~Implement CORS configuration~~ ✅ **Completed**
-- [ ] Set up production build script
+- [x] ~~Set up production build script~~ ✅ **Completed**
 - [ ] Add API documentation (Swagger/OpenAPI)
 - [ ] Implement refresh token rotation
 - [ ] Implement Role Based Access Control (RBAC)
