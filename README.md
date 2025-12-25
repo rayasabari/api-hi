@@ -12,6 +12,7 @@ TypeScript/Express REST API that handles user management and authentication with
 - **Logging**: Pino for structured JSON logging and audit trails
 - **Security**: express-rate-limit for API protection
 - **Validation**: Zod for request validation with custom schemas
+- **Testing**: Vitest for unit testing
 - **Language/Tooling**: TypeScript (strict mode), tsx for development with hot reload
 
 ## Project Structure
@@ -102,7 +103,7 @@ Runs tsx in watch mode, recompiling on changes. The API listens on `PORT` from t
 | `pnpm prisma db push` | Quick sync schema to database without migrations |
 | `pnpm build` | Build the API for production (bundles with tsup) |
 | `pnpm start` | Start the production server from `dist/` |
-| `pnpm test` | _Not configured yet_ (add when ready) |
+| `pnpm test` | Run unit tests with Vitest |
 
 > ❗ **Production build**: The repo currently runs via tsx; add a `tsc` build + `start` script before deploying to production environments like Vercel/Node runtime functions.
 
@@ -314,9 +315,37 @@ Always run migrations in production before starting the app:
 pnpm prisma migrate deploy
 ```
 
+## Testing
+
+The project uses **Vitest** for unit testing.
+
+### Running Tests
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm exec vitest
+
+# Run with coverage
+pnpm exec vitest run --coverage
+```
+
+### Test Structure
+
+Tests are located in `tests/unit/` and mirror the source directory structure:
+
+- `controllers/`: Unit tests for controllers (mocking services)
+- `services/`: Unit tests for services (mocking repositories)
+- `middleware/`: Unit tests for middleware
+- `utils/`: Unit tests for utility functions
+
+
 ## Roadmap / TODO
 
-- [ ] Add automated tests (unit + integration)
+- [ ] Add automated integration test
+- [x] ~~Add automated unit test~~ ✅ **Completed**
 - [x] ~~Implement CORS configuration~~ ✅ **Completed**
 - [x] ~~Set up production build script~~ ✅ **Completed**
 - [ ] Add API documentation (Swagger/OpenAPI)

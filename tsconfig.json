@@ -45,7 +45,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "noEmit": true
   },
