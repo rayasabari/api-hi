@@ -1,12 +1,8 @@
 import nodemailer from 'nodemailer';
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import env from '../config/env';
 import { formatDuration } from '../utils/time-utils';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const transporter = nodemailer.createTransport({
   host: env.emailHost,
@@ -19,7 +15,21 @@ const transporter = nodemailer.createTransport({
 });
 
 const loadEmailTemplate = async (templateName: string, variables: Record<string, string>): Promise<string> => {
-  const templatePath = path.join(__dirname, '..', 'views', 'emails', `${templateName}.html`);
+  // In production (bundled by tsup), __dirname is 'dist/' and views are at 'dist/views/'
+  // In development (tsx watch), __dirname is 'src/services/' and views are at 'src/views/'
+  // Use process.cwd() as base and determine views path based on whether we're in dist or src
+  const viewsPath = path.join(process.cwd(), 'dist', 'views', 'emails', `${templateName}.html`);
+  const devViewsPath = path.join(process.cwd(), 'src', 'views', 'emails', `${templateName}.html`);
+
+  // Try production path first, fall back to development path
+  let templatePath: string;
+  try {
+    await fs.access(viewsPath);
+    templatePath = viewsPath;
+  } catch {
+    templatePath = devViewsPath;
+  }
+
   let template = await fs.readFile(templatePath, 'utf-8');
 
   // Replace all variables in the template
