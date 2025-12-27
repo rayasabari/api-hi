@@ -12,7 +12,7 @@ TypeScript/Express REST API that handles user management and authentication with
 - **Logging**: Pino for structured JSON logging and audit trails
 - **Security**: express-rate-limit for API protection
 - **Validation**: Zod for request validation with custom schemas
-- **Testing**: Vitest for unit testing
+- **Testing**: Vitest for unit and integration testing
 - **Language/Tooling**: TypeScript (strict mode), tsx for development with hot reload
 
 ## Project Structure
@@ -103,7 +103,9 @@ Runs tsx in watch mode, recompiling on changes. The API listens on `PORT` from t
 | `pnpm prisma db push` | Quick sync schema to database without migrations |
 | `pnpm build` | Build the API for production (bundles with tsup) |
 | `pnpm start` | Start the production server from `dist/` |
-| `pnpm test` | Run unit tests with Vitest |
+| `pnpm test` | Run all tests in watch mode |
+| `pnpm test:unit` | Run unit tests only |
+| `pnpm test:integration` | Run integration tests only (sequential) |
 
 > ❗ **Production build**: The repo currently runs via tsx; add a `tsc` build + `start` script before deploying to production environments like Vercel/Node runtime functions.
 
@@ -317,16 +319,19 @@ pnpm prisma migrate deploy
 
 ## Testing
 
-The project uses **Vitest** for unit testing.
+The project uses **Vitest** for unit and integration testing.
 
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (watch mode)
 pnpm test
 
-# Run tests in watch mode
-pnpm exec vitest
+# Run unit tests only
+pnpm test:unit
+
+# Run integration tests only
+pnpm test:integration
 
 # Run with coverage
 pnpm exec vitest run --coverage
@@ -334,17 +339,32 @@ pnpm exec vitest run --coverage
 
 ### Test Structure
 
-Tests are located in `tests/unit/` and mirror the source directory structure:
+Tests are organized in `tests/` with separate directories for unit and integration tests:
 
-- `controllers/`: Unit tests for controllers (mocking services)
-- `services/`: Unit tests for services (mocking repositories)
-- `middleware/`: Unit tests for middleware
-- `utils/`: Unit tests for utility functions
+```
+tests/
+├── unit/                    # Unit tests (mocked dependencies)
+│   ├── controllers/
+│   ├── services/
+│   ├── middleware/
+│   └── utils/
+└── integration/             # Integration tests (real database)
+    ├── helpers/             # Test utilities (DB reset)
+    ├── repositories/        # Repository tests
+    └── routes/              # Route/endpoint tests
+```
+
+### Integration Tests
+
+Integration tests run against a real PostgreSQL database. Ensure your `DATABASE_URL` points to a test database that can be safely cleared between tests.
+
+> [!WARNING]
+> Integration tests truncate all tables before each test. **Do not run against a production database.**
 
 
 ## Roadmap / TODO
 
-- [ ] Add automated integration test
+- [x] ~~Add automated integration test~~ ✅ **Completed**
 - [x] ~~Add automated unit test~~ ✅ **Completed**
 - [x] ~~Implement CORS configuration~~ ✅ **Completed**
 - [x] ~~Set up production build script~~ ✅ **Completed**
